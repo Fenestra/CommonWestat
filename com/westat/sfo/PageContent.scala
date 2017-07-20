@@ -55,6 +55,9 @@ import scala.collection.mutable.ListBuffer
 
 case class LayoutPoint(left : Length, top : Length)
 
+case class BoxPoints(xLeft : Length, xMiddle : Length, xRight : Length, yTop : Length,
+                     yMiddle : Length, yBottom : Length, rx : Length, ry : Length)
+
 object TextAlignments extends Enumeration {
   val taLeft = Value("start")
   val taCenter = Value("middle")
@@ -244,11 +247,11 @@ StringUtilities.debugln(s"pageblock toSVG called with top of $y and our loc:${ou
 }
 
 
-case class BlockGraphic(graphicClass : String, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, somedata : String) extends PageBlock {
+case class BlockGraphic(graphicClass : String, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, rawdata : String) extends PageBlock {
   def bottom : Length = Length.dimension("0fu")
 
   def data: String = {
-    ImageData.dataFor(somedata)
+    ImageData.blockDataToBase64ImageString(rawdata)
   }
 
   def displayString : String = {
@@ -258,7 +261,7 @@ case class BlockGraphic(graphicClass : String, width : Length, height : Length, 
   def isEmpty : Boolean = data.length < 100
 
   def toSVG(location: Location, paragraphs: Boolean): String = {
-    val sb = new StringBuilder(s"""<image id="$graphicClass-$somedata" x="${location.left.asInchesString}" y="${location.top.asInchesString}" """)
+    val sb = new StringBuilder(s"""<image id="$graphicClass-${StringUtilities.veryShortString(rawdata)}" x="${location.left.asInchesString}" y="${location.top.asInchesString}" """)
     sb.append(s"""width="${width.asInchesString}" height="${height.asInchesString}" """)
     sb.append(s"""xlink:href="data:image/$graphicClass;base64,$data" />\n""")
     sb.toString()

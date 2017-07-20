@@ -131,6 +131,10 @@ case class SFOReader(text : String) {
         left = left + area.width
       if (area.stacking == "top")
         top = top + area.height
+      if (area.stacking == "right")
+        left = area.location.right - area.width
+      if (area.stacking == "bottom")
+        top = area.location.bottom - area.height
     })
     if (areas.nonEmpty)
       ar.areas = areas.toList
@@ -151,6 +155,10 @@ case class SFOReader(text : String) {
          left = left + area.width
       if (area.stacking == "top")
          top = top + area.height
+      if (area.stacking == "right")
+        left = area.location.right - area.width
+      if (area.stacking == "bottom")
+        top = area.location.bottom - area.height
     })
     reg.areas = areas.toList
     this
@@ -252,6 +260,12 @@ case class SFOReader(text : String) {
       return None
     if (n.text == "?")
       return None
+    val tlength = n.text.length
+    if ((tlength == 1) && (tlength == n.text.filter(c => c > ' ').length)) {
+  //    println(s"discarding ${n.text}")
+      return None
+    }
+ //   println(s"making text for >${n.text}< len:${n.text.length} no contr:>${n.text.filter(c => c > ' ')}< lennocont:${n.text.filter(c => c > ' ').length}")
     val font = fontForNode(n)
     val text = if (font.notEqual(parentFont))
         InlineText(n.text, font)
@@ -284,12 +298,29 @@ case class SFOReader(text : String) {
     Some(pb)
   }
 
+  // <sfo:block-box fill-color="#FFFFFF" height="1015323fu" line-width="50990fu" outline-color="#000000" space-after="0fu" space-before="0fu" width="1162583fu"/>
+  def makePageBox(n : Node) : Option[PageBlock] = {
+    if (n.label != "block-box")
+      return None
+    val bstyle  = BoxStyles.valueForStyleString((n \ "@box-style").text)
+    val width  = Length.dimension((n \ "@width").text)
+    val height = Length.dimension((n \ "@height").text)
+    val spaceBefore = Length.dimension((n \ "@space-before").text)
+    val spaceAfter = Length.dimension((n \ "@space-after").text)
+    val linewidth = Length.dimension((n \ "@line-width").text)
+    val fillColor = (n \ "@fill-color").text
+    val outlineColor = (n \ "@outline-color").text
+    val pb = BlockBox(bstyle, width, height, spaceBefore, spaceAfter, linewidth, fillColor, outlineColor)
+    Some(pb)
+  }
+
   //populate a top level block, that can have either blocks or inline as children or be empty
   //   maybe not - it looks like blocks only have inline as children
   def makePageBlock(n : Node) : Option[PageBlock] = {
     n.label match {
       case "block-graphic" => return makePageGraphic(n)
       case "block-bracket" => return makePageBracket(n)
+      case "block-box"     => return makePageBox(n)
       case _ =>
     }
     if (n.label != "block")
@@ -314,9 +345,14 @@ case class SFOReader(text : String) {
 
     val color = (n \ "@background-color").text
     val name = (n \ "@content-name").text
+    val leftPad = Length.dimension((n \ "@padding-left").text)
+    val rightPad = Length.dimension((n \ "@padding-right").text)
     var matchingArea = pm.findLocation(name)
     if (matchingArea == null)
        matchingArea = pm.location
+  //  make copy of location?
+  //  adjust left and right by left and right padding
+    matchingArea = matchingArea.adjustPadding(leftPad, rightPad)
     val pf = PageFlow(name, color, matchingArea)
     n.child.foreach(b => {
       makePageBlock(b) match {
@@ -384,7 +420,7 @@ case class SFOReader(text : String) {
 object SFOReader {
   def test = {
     val filename = "Converted-documentLayout.txt"
-    SFOReader(filename).readAll
+    SFOReader(filename).readFromFile // .readAll
    }
 
   def calcTests = {

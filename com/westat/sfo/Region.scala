@@ -176,7 +176,8 @@ case class Area(stacking : String, left : Length, top : Length, width : Length, 
       case "left"   => // nothing to do, normal location.right = location.left + location.width
       case "right"  => computeRightStacking(par)
     }
-    val rect = computeChildDimensions(par)
+//    val rect = computeChildDimensions(par)
+    val rect = computeChildDimensions(location)
     location = rect
     location
   }
@@ -197,8 +198,10 @@ case class Area(stacking : String, left : Length, top : Length, width : Length, 
     var loc = last
     areas.foreach(a => {
       loc = a.computeDimensions(location)
+   //   loc = a.computeChildDimension(this)
     })
-    loc
+//    loc
+    last
   }
 
   def computeChildDimension(par : Area) : Location = {
