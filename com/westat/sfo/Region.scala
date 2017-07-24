@@ -77,6 +77,8 @@ case class QGraphic(anID : String, aX : Length, aY : Length, aClass : String,
 case class PageMaster(id : String, color : String, width : Length, height : Length) {
   var regions : List[Region] = null
   var contentItems : List[QnrItem] = null
+  private var ourLocation : Location = null
+
   def findLocation(name : String) : Location = {
     regions.foreach(r => r.findLocation(name) match {
         case Some(loc) => return loc
@@ -86,17 +88,13 @@ case class PageMaster(id : String, color : String, width : Length, height : Leng
   }
 
   def location : Location = {
-    Location.create(Length.dimension("0fu"), Length.dimension("0fu"), width, height)
+    if (ourLocation == null)
+      ourLocation = Location.create(Length.dimension("0fu"), Length.dimension("0fu"), width, height)
+    ourLocation
   }
 
   def setContentItems(aList : List[QnrItem]) = {
     contentItems = aList
-  }
-
-  def computeDimensions = {
-    regions.foreach(r =>
-       r.computeDimensions(this)
-    )
   }
 
   def displayRegions = {
@@ -223,12 +221,7 @@ case class Region(left : Length, top : Length, right : Length, bottom : Length,
 
   def findLocation(name : String) : Option[Location] = {
     areas.foreach(a => a.findLocation(name) match {
-      case Some(loc) => {
-        // make copy of region, set left,top into it
-        // adjust width and height left-reg.left sub from width  top-reg.top from height
-        val aloc = Location.create(loc.left, loc.top, loc.width - (left-loc.left), loc.height - (top-loc.top))
-        return Some(aloc)
-      }
+      case Some(loc) => return Some(loc)
       case None =>
     })
     None

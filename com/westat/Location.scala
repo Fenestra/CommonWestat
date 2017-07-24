@@ -24,6 +24,7 @@ trait Location {
   def isEmpty : Boolean = {
     left + top + right + bottom + width + height == Length.dimension("0fu")
   }
+
   def adjustPadding(leftPad : Length, rightPad : Length) : Location = {
     var newLeft = left
     var newRight = right
@@ -48,7 +49,7 @@ object Location {
 case class NewLocation(left : Length, top : Length, width : Length, height : Length) extends Location {
   def right : Length = left + width
   def bottom : Length = top + height
-  def rectString : String = s"rect (${left.asInchesString}, ${top.asInchesString})  (${right.asInchesString}, ${bottom.asInchesString})  (${width.asInchesString}, ${height.asInchesString})"
+  def rectString : String = s"(${left.asInchesString}, ${top.asInchesString})  (${right.asInchesString}, ${bottom.asInchesString})  (${width.asInchesString}, ${height.asInchesString})"
   def copyOf : Location = NewLocation(left, top, width, height)
   def moveLeft(delta : Length) : Location = NewLocation(left - delta, top, width, height)
   def moveRight(delta : Length) : Location = NewLocation(left + delta, top, width, height)

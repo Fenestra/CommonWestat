@@ -215,7 +215,7 @@ case class BlockText(font : GidsFont, textAlign : TextAlignments.Value) extends 
     val y = location.top.asInchesString
 StringUtilities.debugln(s"pageblock toSVG called with top of $y and our loc:${ourLocation.rectString}")
     var aLeft = leftBounds
-    var aTop = location.top + lineSize
+    var aTop = location.top + font.lineSpace //lineSize
     var usedLength : Length = null
     val res = new StringBuilder(s"""<text x="$x" y="$y" ${font.asSVGString} text-anchor="${textAlign}">\n""")
 //    val res = new StringBuilder(s"""<text x="$x" y="$y" style="white-space:pre" ${font.asSVGString}>\n""")
@@ -225,7 +225,7 @@ StringUtilities.debugln(s"pageblock toSVG called with top of $y and our loc:${ou
       val ttext = t.text.trim
       usedLength = currentFont(t.font).stringWidth(ttext)
       StringUtilities.debugln(s"pageblock printing text left:$aLeft  top:$aTop ")
-     if ((usedLength + aLeft) <= rightBounds) {
+      if ((usedLength + aLeft) <= rightBounds) {
         output(res, ttext, aLeft.asInchesString, aTop.asInchesString, t.fontstring, usedLength)
         aLeft = aLeft + usedLength
       }
@@ -413,8 +413,8 @@ case class PageFlow(contentID : String, color : String, location : Location) {
       var colorString = color
       colorString match {
         case "" => colorString = "white"
-        case "form-background" => colorString = "silver"
-        case _ =>
+      //  case "form-background" => colorString = "silver"
+        case _ => parentColor
       }
       res.append(s"""<rect x="$x" y="$y" width="$w" height="$h" fill="$colorString" fill-opacity="0.6" id="$contentID" />\n""")
     }

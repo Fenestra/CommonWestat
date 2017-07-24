@@ -32,7 +32,10 @@ object ImageData {
 
 
   // this works and does not write to file to do it!!!
-  def blockDataToBase64ImageString(data : String) = {
+  def blockDataToBase64ImageString(data : String) : String = {
+    if (data.length < 100)
+      return dataFor(data)
+
     val nodetext = data.filter(c => c > ' ') // remove control chars (anything above space)
 //    println(s"node is ${StrUtil.shortString(nodetext)}")
     val encoded = decodeUnpackEncodeString(nodetext)

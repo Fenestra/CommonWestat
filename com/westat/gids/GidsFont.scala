@@ -78,6 +78,8 @@ case class GidsFont(family : String, color : String, weightNum : String, rawSize
    val fontMetrics = graphics.getFontMetrics(javaFont)
    Length.dimension(s"${fontMetrics.stringWidth(text)+(adjustedFontsize*.75)}pt")
   }
+
+  def lineSpace : Length = rawSize * 0.80
 /*
   def lineHeight : Length = {
     if (fheight == null) {

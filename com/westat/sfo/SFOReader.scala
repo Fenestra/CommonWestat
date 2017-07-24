@@ -73,6 +73,7 @@ case class SFOReader(text : String) {
       val pheight = (a \ "media" \ "@height").text
       val pm = PageMaster(id, pcolor, Length.dimension(pwidth), Length.dimension(pheight))
       pmList += pm
+      currentPM = pm
       getRegions(a, pm)
     })
    pageMasters = pmList.toList
@@ -80,7 +81,6 @@ case class SFOReader(text : String) {
   }
 
   def getRegions(node : scala.xml.Node, pm : PageMaster) : SFOReader = {
-    currentPM = pm
     val regs = (node \ "region")
     var regions = new ListBuffer[Region]  
     regs.foreach(r => {
@@ -419,7 +419,8 @@ case class SFOReader(text : String) {
 
 object SFOReader {
   def test = {
-    val filename = "Converted-documentLayout.txt"
+    val filename = "instructions.sfo"
+//    val filename = "Converted-documentLayout.txt"
     SFOReader(filename).readFromFile // .readAll
    }
 
