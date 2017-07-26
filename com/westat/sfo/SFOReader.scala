@@ -283,7 +283,7 @@ case class SFOReader(text : String) {
     val spaceBefore = Length.dimension((n \ "@space-before").text)
     val spaceAfter = Length.dimension((n \ "@space-after").text)
     val data = (n \ "@data").text
-    val pg = BlockGraphic(graphicClass, width, height, spaceBefore, spaceAfter, data)
+    val pg = BlockGraphic.createGraphic(graphicClass, width, height, spaceBefore, spaceAfter, data)
     Some(pg)
   }
 

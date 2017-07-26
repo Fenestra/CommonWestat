@@ -247,9 +247,10 @@ StringUtilities.debugln(s"pageblock toSVG called with top of $y and our loc:${ou
 }
 
 
-case class BlockGraphic(graphicClass : String, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, rawdata : String) extends PageBlock {
+case class BlockImage(graphicClass : String, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, rawdata : String) extends PageBlock {
   def bottom : Length = Length.dimension("0fu")
-
+  if (graphicClass != "png")
+    println(s"NOT A PNG $graphicClass ") //${rawdata.substring(1, 50)}")
   def data: String = {
     ImageData.blockDataToBase64ImageString(rawdata)
   }
@@ -261,10 +262,41 @@ case class BlockGraphic(graphicClass : String, width : Length, height : Length, 
   def isEmpty : Boolean = data.length < 100
 
   def toSVG(location: Location, paragraphs: Boolean): String = {
+    graphicClass match {
+       case "png" => drawImage(location)
+       case "bmp" => drawImage(location)
+       case "jpg" => drawImage(location)
+       case _ => drawUnsupportedImage(location)
+    }
+  }
+
+  def drawImage(location : Location) : String = {
     val sb = new StringBuilder(s"""<image id="$graphicClass-${StringUtilities.veryShortString(rawdata)}" x="${location.left.asInchesString}" y="${location.top.asInchesString}" """)
     sb.append(s"""width="${width.asInchesString}" height="${height.asInchesString}" """)
     sb.append(s"""xlink:href="data:image/$graphicClass;base64,$data" />\n""")
     sb.toString()
+  }
+
+  def drawUnsupportedImage(location : Location) : String = {
+    var line = location.top
+    val sb = new StringBuilder(s"""<text x="${location.left.asInchesString}" y="${line.asInchesString}" """)
+    sb.append("""style="font-size:10pt;stroke:none;fill:black;font-weight:lighter;font-family:Arial Bold;font-stretch:ultra-condensed;">""")
+    sb.append(s"""<tspan x="${location.left.asInchesString}" y="${line.asInchesString}" >($graphicClass)</tspan>\n""")
+    line = line + Length.NEW_LINE_SIZE
+    sb.append(s"""<tspan x="${location.left.asInchesString}" y="${line.asInchesString}">is not supported</tspan>\n</text>""")
+    sb.toString()
+  }
+}
+
+object BlockGraphic {
+  def createGraphic(graphicClass : String, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, rawdata : String) : PageBlock = {
+    graphicClass match {
+      case "bar-code"  => BlockBarcode(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
+//      case "png" => BlockImage(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
+//      case "bmp" => BlockImage(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
+//      case "jpg" => BlockImage(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
+      case _ => BlockImage(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
+    }
   }
 }
 
