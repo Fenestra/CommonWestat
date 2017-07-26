@@ -92,6 +92,28 @@ object BoxStyles extends Enumeration {
   }
 }
 
+object GraphicKinds extends Enumeration {
+  val gkBitmap     = Value("bmp")
+  val gkJPEG       = Value("jpg")
+  val gkPNG        = Value("png")
+  val gkMetafile   = Value("emf")
+  val gkBarcode    = Value("barcode")
+  val gkEyeReadableNumber = Value("eye-readable-number")
+  val gkRotatedText = Value("rotated")
+  def valueForKindString(s : String) : GraphicKinds.Value = {
+    s match {
+      case "bmp"     => gkBitmap
+      case "jpg"     => gkJPEG
+      case "png"     => gkPNG
+      case "emf"     => gkMetafile
+      case "barcode" => gkBarcode
+      case "eye-readable-number" => gkEyeReadableNumber
+      case "rotated" => gkRotatedText
+      case _         => gkPNG
+    }
+  }
+}
+
 case class InlineText(text : String, font : GidsFont) {
   private val maxLength = Length.dimension("7in")
   var lineCount = 1
@@ -247,10 +269,10 @@ StringUtilities.debugln(s"pageblock toSVG called with top of $y and our loc:${ou
 }
 
 
-case class BlockImage(graphicClass : String, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, rawdata : String) extends PageBlock {
+case class BlockImage(graphicKind : GraphicKinds.Value, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, rawdata : String) extends PageBlock {
   def bottom : Length = Length.dimension("0fu")
-  if (graphicClass != "png")
-    println(s"NOT A PNG $graphicClass ") //${rawdata.substring(1, 50)}")
+  if (graphicKind != GraphicKinds.gkPNG)
+    println(s"NOT A PNG $graphicKind ") //${rawdata.substring(1, 50)}")
   def data: String = {
     ImageData.blockDataToBase64ImageString(rawdata)
   }
@@ -262,18 +284,18 @@ case class BlockImage(graphicClass : String, width : Length, height : Length, sp
   def isEmpty : Boolean = data.length < 100
 
   def toSVG(location: Location, paragraphs: Boolean): String = {
-    graphicClass match {
-       case "png" => drawImage(location)
-       case "bmp" => drawImage(location)
-       case "jpg" => drawImage(location)
+    graphicKind match {
+       case GraphicKinds.gkPNG    => drawImage(location)
+       case GraphicKinds.gkBitmap => drawImage(location)
+       case GraphicKinds.gkJPEG   => drawImage(location)
        case _ => drawUnsupportedImage(location)
     }
   }
 
   def drawImage(location : Location) : String = {
-    val sb = new StringBuilder(s"""<image id="$graphicClass-${StringUtilities.veryShortString(rawdata)}" x="${location.left.asInchesString}" y="${location.top.asInchesString}" """)
+    val sb = new StringBuilder(s"""<image id="$graphicKind-${StringUtilities.veryShortString(rawdata)}" x="${location.left.asInchesString}" y="${location.top.asInchesString}" """)
     sb.append(s"""width="${width.asInchesString}" height="${height.asInchesString}" """)
-    sb.append(s"""xlink:href="data:image/$graphicClass;base64,$data" />\n""")
+    sb.append(s"""xlink:href="data:image/$graphicKind;base64,$data" />\n""")
     sb.toString()
   }
 
@@ -281,7 +303,7 @@ case class BlockImage(graphicClass : String, width : Length, height : Length, sp
     var line = location.top
     val sb = new StringBuilder(s"""<text x="${location.left.asInchesString}" y="${line.asInchesString}" """)
     sb.append("""style="font-size:10pt;stroke:none;fill:black;font-weight:lighter;font-family:Arial Bold;font-stretch:ultra-condensed;">""")
-    sb.append(s"""<tspan x="${location.left.asInchesString}" y="${line.asInchesString}" >($graphicClass)</tspan>\n""")
+    sb.append(s"""<tspan x="${location.left.asInchesString}" y="${line.asInchesString}" >($graphicKind)</tspan>\n""")
     line = line + Length.NEW_LINE_SIZE
     sb.append(s"""<tspan x="${location.left.asInchesString}" y="${line.asInchesString}">is not supported</tspan>\n</text>""")
     sb.toString()
@@ -290,12 +312,14 @@ case class BlockImage(graphicClass : String, width : Length, height : Length, sp
 
 object BlockGraphic {
   def createGraphic(graphicClass : String, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, rawdata : String) : PageBlock = {
-    graphicClass match {
-      case "bar-code"  => BlockBarcode(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
-//      case "png" => BlockImage(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
-//      case "bmp" => BlockImage(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
-//      case "jpg" => BlockImage(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
-      case _ => BlockImage(graphicClass, width, height, spaceBefore, spaceAfter, rawdata)
+    val gKind = GraphicKinds.valueForKindString(graphicClass)
+println(s"createGraphic got $graphicClass and turned it into $gKind")
+    gKind match {
+      case GraphicKinds.gkBarcode  => BlockBarcode(gKind, width, height, spaceBefore, spaceAfter, rawdata)
+//      case GraphicKinds.gkPNG      => BlockImage(gKind, width, height, spaceBefore, spaceAfter, rawdata)
+//      case GraphicKinds.gkBitmap   => BlockImage(gKind, width, height, spaceBefore, spaceAfter, rawdata)
+//      case GraphicKinds.gkJPEG     => BlockImage(gKind, width, height, spaceBefore, spaceAfter, rawdata)
+      case _ => BlockImage(gKind, width, height, spaceBefore, spaceAfter, rawdata)
     }
   }
 }

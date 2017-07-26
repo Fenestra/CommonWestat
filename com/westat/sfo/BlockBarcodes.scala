@@ -22,7 +22,7 @@ import org.krysalis.barcode4j.output.svg.SVGCanvasProvider
   */
 
 
-case class BlockBarcode(graphicClass : String, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, data : String) extends PageBlock {
+case class BlockBarcode(graphicKind : GraphicKinds.Value, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, data : String) extends PageBlock {
   def bottom : Length = Length.dimension("0fu")
 
   def displayString : String = {
@@ -32,8 +32,8 @@ case class BlockBarcode(graphicClass : String, width : Length, height : Length, 
   def isEmpty : Boolean = data.length == 0
 
   def toSVG(location: Location, paragraphs: Boolean): String = {
-    graphicClass match {
-       case "bar-code"  => drawBarCode(location)
+    graphicKind match {
+       case GraphicKinds.gkBarcode  => drawBarCode(location)
        case _ => drawUnsupportedCode(location)
     }
   }
@@ -42,7 +42,7 @@ case class BlockBarcode(graphicClass : String, width : Length, height : Length, 
     var line = location.top
     val sb = new StringBuilder(s"""<text x="${location.left.asInchesString}" y="${line.asInchesString}" """)
     sb.append("""style="font-size:10pt;stroke:none;fill:black;font-weight:lighter;font-family:Arial Bold;font-stretch:ultra-condensed;">""")
-    sb.append(s"""<tspan x="${location.left.asInchesString}" y="${line.asInchesString}" >($graphicClass)</tspan>\n""")
+    sb.append(s"""<tspan x="${location.left.asInchesString}" y="${line.asInchesString}" >($graphicKind)</tspan>\n""")
     line = line + Length.NEW_LINE_SIZE
     sb.append(s"""<tspan x="${location.left.asInchesString}" y="${line.asInchesString}">is not supported</tspan>\n</text>""")
     sb.toString()
@@ -66,7 +66,7 @@ case class BlockBarcode(graphicClass : String, width : Length, height : Length, 
     trans.transform(domSrc, result)
     bos.toString
     val res = bos.toString.drop(43)
-    s"""<svg id="$graphicClass-$data" x="${location.left.asInchesString}" y="${location.top.asInchesString}" """ + res
+    s"""<svg id="$graphicKind-$data" x="${location.left.asInchesString}" y="${location.top.asInchesString}" """ + res
 
     //      <svg height="17.8219mm" viewBox="0 0 24.99 17.8219" width="24.99mm" xmlns="http://www.w3.org/2000/svg">
     // x="2in" y="6in"
