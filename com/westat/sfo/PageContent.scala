@@ -139,136 +139,6 @@ trait PageBlock {
   def isEmpty : Boolean
 }
 
-//text-align left, center, right => text-anchor=start, middle, or end
-case class BlockText(font : GidsFont, textAlign : TextAlignments.Value) extends PageBlock {
-  private var textList = new ListBuffer[InlineText]
-  private var ourLocation : Location = _
-
-  var bottom = Length.dimension("0fu")
-
-  def isEmpty : Boolean = {
-    textList.isEmpty || (
-      (textList.length == 1) && textList.head.isEmpty
-    )
-  }
-
-  def addText(value : InlineText) : BlockText = {
-    textList += value
-    this
-  }
-  def displayString : String = {
-    val sb = new StringBuilder(toString+"\n")
-    textList.foreach(t => sb.append("      "+t.toString+"\n"))
-    sb.toString()
-  }
-
-  private def leftBounds : Length = ourLocation.left
-  private def rightBounds : Length = ourLocation.right
-  private def bottomBounds : Length = ourLocation.bottom
-  private def lineSize : Length = font.rawSize
-
-  private def currentFont(textfont : GidsFont) : GidsFont = {
-    if (textfont == null)
-      font
-    else
-      textfont
-  }
-
-
-  private def output(sb : StringBuilder, sometext : String, x : String, y : String, fs : String, usedLength : Length) = {
-    val lineX = xForAlignment(Length.dimension(x), usedLength).asInchesString
-    val line = s"""<tspan x="$lineX" y="$y" $fs>$sometext</tspan>\n"""
-    StringUtilities.debugln(s" - - - x=$x y=$y $sometext")
-    sb.append(line)
-  }
-
-  private def processOutput(sb : StringBuilder, sometext : String, position : LayoutPoint, aFont : GidsFont, fs : String) : LayoutPoint = {
-    var aLeft = position.left
-    var aTop = position.top
-    if (aTop > bottomBounds)
-      return position
-    var usedLength = currentFont(aFont).stringWidth(sometext)
-    if ((usedLength + aLeft) < rightBounds) {
-        output(sb, sometext, aLeft.asInchesString, aTop.asInchesString, fs, usedLength)
-        aLeft = aLeft + usedLength
-      }
-      else { // force a new line and start from the beginning
-        aTop = aTop + lineSize
-        if (aTop > bottomBounds)
-          return position
-        output(sb, sometext, leftBounds.asInchesString, aTop.asInchesString, fs, usedLength)
-        aLeft = leftBounds + usedLength
-      }
-    LayoutPoint(aLeft, aTop)
-  }
-
-  private def addMultipleStrings(sb : StringBuilder, sometext : String, x : Length, y : Length, aFont : GidsFont, fs : String) : LayoutPoint = {
-    val lines = StringUtilities.fitStringToLengths(sometext, rightBounds - x, rightBounds - leftBounds, aFont)
-    val usedLength = currentFont(aFont).stringWidth(lines.head)
-    if (y > bottomBounds)
-      return LayoutPoint(x, y)
-    output(sb, lines.head, x.asInchesString, y.asInchesString, fs, usedLength)
-
-    var aLeft = leftBounds
-    var aTop = y + lineSize
-    lines.tail.foreach(s => {
-        //      need x, dy, text, charsAvail,   hold left and usedLength so we can calc nextLeft   pass something that tells this is last line, so nextleft is left
-        val newpos = processOutput(sb, s, LayoutPoint(aLeft, aTop), aFont, fs)
-        aLeft = newpos.left
-        aTop = newpos.top
-      })
-    LayoutPoint(aLeft, aTop)
-  }
-
-  def xForAlignment(aLeft : Length, used : Length) : Length = {
-     textAlign match {
-       case TextAlignments.taLeft => aLeft
-       case TextAlignments.taCenter => aLeft + (rightBounds - aLeft) * 0.5
-       case TextAlignments.taRight  => rightBounds
-     }
-  }
-
-  // pageblock knows everything about the space to draw, so it controls drawing
-  // go through each inline text and draw it
-  def toSVG(location : Location, paragraphs : Boolean) : String = {
-    ourLocation = location.copyOf
-//    println(s"  PageBlock started $location")
-    val x = location.left.asInchesString
-    val y = location.top.asInchesString
-StringUtilities.debugln(s"pageblock toSVG called with top of $y and our loc:${ourLocation.rectString}")
-    var aLeft = leftBounds
-    var aTop = location.top + font.lineSpace //lineSize
-    var usedLength : Length = null
-    val res = new StringBuilder(s"""<text x="$x" y="$y" ${font.asSVGString} text-anchor="${textAlign}">\n""")
-//    val res = new StringBuilder(s"""<text x="$x" y="$y" style="white-space:pre" ${font.asSVGString}>\n""")
- if (isEmpty)
-   println("------------------ pageblock is empty, but printing anyway -------------------------")
-    textList.foreach(t => {
-      val ttext = t.text.trim
-      usedLength = currentFont(t.font).stringWidth(ttext)
-      StringUtilities.debugln(s"pageblock printing text left:$aLeft  top:$aTop ")
-      if ((usedLength + aLeft) <= rightBounds) {
-        output(res, ttext, aLeft.asInchesString, aTop.asInchesString, t.fontstring, usedLength)
-        aLeft = aLeft + usedLength
-      }
-      else {
-        val newpos = addMultipleStrings(res, ttext, aLeft, aTop, currentFont(t.font), t.fontstring)
-        aLeft = newpos.left
-        aTop = newpos.top
-      }
-    })
-    if (paragraphs)
-      bottom = aTop + lineSize
-    else
-      bottom = aTop
-    StringUtilities.debugln("================================ end of block and paragraph ====================")
-    res.append("</text>\n")
-    res.toString()
-  }
-
-}
-
-
 case class BlockImage(graphicKind : GraphicKinds.Value, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, rawdata : String) extends PageBlock {
   def bottom : Length = Length.dimension("0fu")
   if (graphicKind != GraphicKinds.gkPNG)
@@ -313,7 +183,7 @@ case class BlockImage(graphicKind : GraphicKinds.Value, width : Length, height :
 object BlockGraphic {
   def createGraphic(graphicClass : String, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length, rawdata : String) : PageBlock = {
     val gKind = GraphicKinds.valueForKindString(graphicClass)
-println(s"createGraphic got $graphicClass and turned it into $gKind")
+//println(s"createGraphic got $graphicClass and turned it into $gKind")
     gKind match {
       case GraphicKinds.gkBarcode  => BlockBarcode(gKind, width, height, spaceBefore, spaceAfter, rawdata)
 //      case GraphicKinds.gkPNG      => BlockImage(gKind, width, height, spaceBefore, spaceAfter, rawdata)
