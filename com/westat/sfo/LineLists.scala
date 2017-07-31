@@ -42,6 +42,12 @@ case class OutputLine(length : Length, textAlign : TextAlignments.Value) {
     this
   }
 
+  def contents : String = {
+    val sb = new StringBuilder()
+    list.foreach(lp => sb.append(lp.text + " "))
+    sb.toString
+  }
+
   def toSVG(sb : StringBuilder, startRect : Location, fs : String) = {
 //    println(s"outputline has start of $startRect")
     var rect = startLine(startRect, list.head.length)
@@ -89,7 +95,13 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
   private var linelist = getLineList
   private def lineSize : Length = font.rawSize
 
-  def lines : List[OutputLine] = linelist.toList
+  def lines(newWidth : Length = maxWidth) : List[OutputLine] = {
+    if (newWidth != maxWidth) {
+      LineListFactory(textList, newWidth, font, textAlign).lines()
+    }
+    else
+      linelist.toList
+  }
 
   private def currentFont(textfont : GidsFont) : GidsFont = {
     if (textfont == null)
@@ -105,11 +117,14 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
     textList.foreach(t => {
       thisWidth = currentFont(t.font).stringWidth(t.text)
       lineObj = addLineIfNeeded(lineObj)
-      if (thisWidth < lineObj.remainingWidth)
+//    println(s" this text ${t.text} len=$thisWidth remaining:${lineObj.remainingWidth}")
+      if (thisWidth <= lineObj.remainingWidth)
         lineObj.addText(t.text, thisWidth, t.fontstring)
       else
         lineObj = addMultipleLines(lineObj, t, t.fontstring)
     })
+
+// linelist.foreach(ol => println(ol + " cont:" + ol.contents))
     linelist
   }
 
@@ -120,7 +135,7 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
   }
 
   private def addLineIfNeeded(line : OutputLine) : OutputLine = {
-    if (line.remainingWidth < Length.dimension(".18in"))
+    if (line.remainingWidth < Length.dimension(".05in"))
       addLine
     else
       line
@@ -143,7 +158,7 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
         result = addLine.addText(ttext, thisWidth, fs)
       }
     }
-    lineObj
+    result
   }
 
 }

@@ -100,6 +100,10 @@ case class PageMaster(id : String, color : String, width : Length, height : Leng
   def displayRegions = {
     regions.sortBy(r => r.top.asInches).foreach(r => r.displayAreaNames)
   }
+
+  def computeDimensions = {
+    regions.foreach(r => r.computeDimensions(this))
+  }
 }
 
 

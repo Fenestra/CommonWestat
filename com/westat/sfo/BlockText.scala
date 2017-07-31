@@ -102,7 +102,7 @@ case class BlockText(font : GidsFont, textAlign : TextAlignments.Value) extends 
     val sb = new StringBuilder(s"""<text x="${availRect.left.asInchesString}" y="${availRect.top.asInchesString}" ${font.asSVGString} text-anchor="${textAlign}">\n""")
 
     // gather all the lines
-    lineList = LineListFactory(textList.toList, location.width, font, textAlign).lines
+    lineList = LineListFactory(textList.toList, location.width, font, textAlign).lines()
     // process each line
     lineList.foreach(line => {
       line.toSVG(sb, availRect, font.asSVGString)

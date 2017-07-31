@@ -1,7 +1,7 @@
 package com.westat.sfo
 
 import com.westat.gids.GidsFont
-import com.westat.{BoxPoints, Length, Location, StringUtilities}
+import com.westat.{Length, Location, StringUtilities}
 import scala.collection.mutable.ListBuffer
 
 /**
