@@ -97,19 +97,26 @@ object GraphicKinds extends Enumeration {
   val gkJPEG       = Value("jpg")
   val gkPNG        = Value("png")
   val gkMetafile   = Value("emf")
-  val gkBarcode    = Value("barcode")
+  val gkBarcode    = Value("bar-code")
   val gkEyeReadableNumber = Value("eye-readable-number")
-  val gkRotatedText = Value("rotated")
+  val gkRotatedText = Value("rotated-text")
+/*  'bitmap',
+  'jpeg',
+  'png',
+  'metafile',
+  'bar-code',
+  'eye-readable-number',
+  'rotated-text');*/
   def valueForKindString(s : String) : GraphicKinds.Value = {
     s match {
-      case "bmp"     => gkBitmap
-      case "jpg"     => gkJPEG
-      case "png"     => gkPNG
-      case "emf"     => gkMetafile
-      case "barcode" => gkBarcode
+      case "bitmap"              => gkBitmap
+      case "jpeg"                => gkJPEG
+      case "png"                 => gkPNG
+      case "metafile"            => gkMetafile
+      case "bar-code"            => gkBarcode
       case "eye-readable-number" => gkEyeReadableNumber
-      case "rotated" => gkRotatedText
-      case _         => gkPNG
+      case "rotated-text"        => gkRotatedText
+      case _                     => gkPNG
     }
   }
 }
@@ -213,20 +220,15 @@ case class BlockBracket(direction : String, lineWidth : Length, outlineColor : S
     else
       "blue"
     val sb = new StringBuilder("") //s"""<rect id="bracket-$direction" x="${location.left.asInchesString}" y="${location.top.asInchesString}" """)
-//    sb.append(s"""width="$asize" height="$asize" """)
-//    sb.append(s"""width="${location.width.asInchesString}" height="${location.height.asInchesString}" """)
-//    sb.append(s"""fill="$acolor" fill-opacity="0.95" />""")
-    val aleft = location.left + Length.dimension("0.5in") //(location.width / 2)
+    val aleft = location.left + Length.dimension("0.74in") //(location.width / 2)
     val atop  = location.top + Length.dimension("0.74in") //(location.height * 0.75)
     val trans = direction match {
-//        case "east"  => "matrix(1 , 0 , 0 , 1 , 0 , 0 )"
-//        case "north" => "matrix( 0, -1, 1, -0, -0.4817695617675781, 101.97134780883789)"
-//        case "west"  => "matrix( -1, 0, 0, -1, 101.48958015441895, 102.45312690734863)"
-//        case "south" => "matrix(0 1 1 0 1 -1)"
-        case "south" => s"matrix(0 1 1 0 ${aleft.asInchesString} -${atop.asInchesString})"
-        case _  => "matrix(1 , 0 , 0 , 1 , 0 , 0 )"
-    }
- //   west glyph-orientation-horizontal:0;at end of style
+        case "east"  => s"rotate(180 ${(aleft - Length.dimension("15pt")).asPixels}, ${(atop - Length.dimension("15pt")).asPixels})"
+        case "north" => s"rotate(90 ${aleft.asPixels}, ${(atop - Length.dimension("15pt")).asPixels})"
+        case "west"  => ""
+        case "south" => s"rotate(270 ${aleft.asPixels}, ${atop.asPixels})"
+        case _  => ""
+      }
     sb.append(s"""<text x="${aleft.asInchesString}" y="${atop.asInchesString}"
        style="font-size:66pt;stroke:none;fill:$acolor;
        font-weight:lighter;font-family:Arial Narrow;font-stretch:ultra-condensed;

@@ -67,8 +67,7 @@ case class GidsFont(family : String, color : String, weightNum : String, rawSize
     val smallSize = if (rawSize == null)
       11
     else
-      rawSize.asPoints.toInt
-//    (rawSize * 0.98).asPoints.toInt
+     (rawSize * 0.9).asPoints.toInt
 
     new Font(family, fstyle, smallSize)
   }
@@ -76,7 +75,7 @@ case class GidsFont(family : String, color : String, weightNum : String, rawSize
   def stringWidth(text : String) : Length = {
    val graphics = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics
    val fontMetrics = graphics.getFontMetrics(javaFont)
-   Length.dimension(s"${fontMetrics.stringWidth(text)+(adjustedFontsize*.75)}pt")
+   Length.dimension(s"${fontMetrics.stringWidth(text)}pt")
   }
 
   def lineSpace : Length = rawSize * 0.80

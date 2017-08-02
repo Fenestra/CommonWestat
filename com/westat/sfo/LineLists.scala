@@ -49,43 +49,26 @@ case class OutputLine(length : Length, textAlign : TextAlignments.Value) {
   }
 
   def toSVG(sb : StringBuilder, startRect : Location, fs : String) = {
-//    println(s"outputline has start of $startRect")
-    var rect = startLine(startRect, list.head.length)
+    //    println(s"outputline has start of $startRect")
+    var rect = startRect.copyOf
+    val lineX = xForAlignment(rect)
+    val startfs = list.head.fs
+    val line = s"""<tspan x="${lineX.asInchesString}" y="${startRect.top.asInchesString}">\n"""
+    sb.append(line)
     list.foreach(p => {
-      var lineX = xForAlignment(rect, p.length)
-      val line = s"""<tspan x="${lineX.asInchesString}" y="${startRect.top.asInchesString}" ${p.fs}>${p.text}</tspan>\n"""
-      rect = calcNextPosition(rect, p.length)
-      sb.append(line)
+      if (p.fs != fs)
+        sb.append(s"""<tspan ${p.fs}>${p.text}</tspan>\n""")
+      else
+        sb.append(p.text)
     })
+    sb.append("</tspan>\n")
   }
 
-  def startLine(loc : Location, firstLen : Length) : Location = {
-    if ((list.length == 1) || (textAlign != TextAlignments.taCenter))
-      return loc.copyOf
-    val offset = (loc.width - totalWidth) / 2
-    Location.create(loc.left + offset, loc.top, firstLen, loc.height)
-  }
-
-  private def xForAlignment(aRect : Location, twidth : Length) : Length = {
+  private def xForAlignment(aRect : Location) : Length = {
     textAlign match {
       case TextAlignments.taLeft => aRect.left
-      case TextAlignments.taCenter => if (list.length == 1)
-        aRect.left + (aRect.width / 2)
-       else
-        aRect.left + (twidth / 2)
+      case TextAlignments.taCenter => aRect.left + (aRect.width / 2)
       case TextAlignments.taRight  => aRect.right
-    }
-  }
-
-  private def calcNextPosition(startRect : Location, textLen : Length) : Location = {
-    val newWidth = startRect.width - textLen
-    textAlign match {
-      case TextAlignments.taLeft =>
-        Location.create(startRect.left + textLen, startRect.top, newWidth, startRect.height)
-      case TextAlignments.taCenter =>
-        Location.create(startRect.left + textLen, startRect.top, newWidth, startRect.height)
-      case TextAlignments.taRight  =>
-        Location.create(startRect.left, startRect.top, newWidth, startRect.height)
     }
   }
 }
@@ -119,7 +102,7 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
       lineObj = addLineIfNeeded(lineObj)
 //    println(s" this text ${t.text} len=$thisWidth remaining:${lineObj.remainingWidth}")
       if (thisWidth <= lineObj.remainingWidth)
-        lineObj.addText(t.text, thisWidth, t.fontstring)
+          lineObj = lineObj.addText(t.text, thisWidth, t.fontstring)
       else
         lineObj = addMultipleLines(lineObj, t, t.fontstring)
     })
@@ -135,7 +118,7 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
   }
 
   private def addLineIfNeeded(line : OutputLine) : OutputLine = {
-    if (line.remainingWidth < Length.dimension(".05in"))
+    if (line.remainingWidth < Length.dimension(".1in"))
       addLine
     else
       line

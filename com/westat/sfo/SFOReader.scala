@@ -420,6 +420,7 @@ case class SFOReader(text : String) {
 object SFOReader {
   def test = {
     val filename = "instructions.sfo"
+//    val filename = "BracketSFO.xml"
 //    val filename = "Converted-documentLayout.txt"
     SFOReader(filename).readFromFile // .readAll
    }

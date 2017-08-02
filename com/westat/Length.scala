@@ -79,8 +79,12 @@ case class Length(uom : UOM, value : Double) {
   def asFut : Double = {
      value * uom.unitRatio
   }
+  def asPixels : Long = {
+    val s : Double = asDeviceUnits * 0.9
+    s.toLong
+  }
   def asDeviceUnits : Long = {
-//    println(s"asDeviceUnits for $value asFut is "+asFut.toLong)
+    //    println(s"asDeviceUnits for $value asFut is "+asFut.toLong)
     val s : Double = (asFut / LDPI) * 100
     s.toLong
   }
@@ -149,7 +153,7 @@ case class Length(uom : UOM, value : Double) {
     val pc = asPicas
     val pt = asPoints
     val pp = asPrintersPoints
-    s"$this as mm:$mm cm:$cm m:$m in:$in pc:$pc pt:$pt pp:$pp dev:$asDeviceUnits"
+    s"$this as mm:$mm cm:$cm m:$m in:$in pc:$pc pt:$pt pp:$pp dev:$asDeviceUnits px:$asPixels"
   }
   override def toString : String = {
     "Length("+asInchesString+")"
@@ -188,6 +192,12 @@ object Length {
     println("  and as other uoms is "+d.translateUOMs)
     d = sub(d, ".5in")
     println(s"sub .5in is $d and deviceUnits is "+d.asDeviceUnits)
+    println("  and as other uoms is "+d.translateUOMs)
+    d = dimension("1in")
+    println(s"sub 1in is $d and deviceUnits is "+d.asDeviceUnits)
+    println("  and as other uoms is "+d.translateUOMs)
+    d = dimension("2in")
+    println(s"sub 2in is $d and deviceUnits is "+d.asDeviceUnits)
     println("  and as other uoms is "+d.translateUOMs)
   }
 

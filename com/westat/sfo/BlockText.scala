@@ -109,9 +109,9 @@ case class BlockText(font : GidsFont, textAlign : TextAlignments.Value) extends 
       availRect = wrapToNewLine(availRect)
     })
 
-    if (paragraphs)
-      bottom = availRect.top + lineSize
-    else
+//    if (paragraphs)  // lineSpace works best below, but not for regular letters, only instructions
+//      bottom = availRect.top + font.lineSpace //lineSize
+//    else
       bottom = availRect.top
     // complete the string and return the result
     sb.append("</text>\n")
