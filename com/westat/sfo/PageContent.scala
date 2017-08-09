@@ -201,43 +201,6 @@ object BlockGraphic {
   }
 }
 
-case class BlockBracket(direction : String, lineWidth : Length, outlineColor : String, size : Length) extends PageBlock {
-  def bottom : Length = Length.dimension("0fu")
-
-  def displayString : String = {
-    toString+"\n"
-  }
-
-  def isEmpty : Boolean = false
-
-  def toSVG(location: Location, paragraphs: Boolean): String = {
-    val asize = if (size != null)
-       size.asInchesString
-    else
-       "40"
-    val acolor = if (outlineColor.nonEmpty)
-      outlineColor
-    else
-      "blue"
-    val sb = new StringBuilder("") //s"""<rect id="bracket-$direction" x="${location.left.asInchesString}" y="${location.top.asInchesString}" """)
-    val aleft = location.left + Length.dimension("0.74in") //(location.width / 2)
-    val atop  = location.top + Length.dimension("0.74in") //(location.height * 0.75)
-    val trans = direction match {
-        case "east"  => s"rotate(180 ${(aleft - Length.dimension("15pt")).asPixels}, ${(atop - Length.dimension("15pt")).asPixels})"
-        case "north" => s"rotate(90 ${aleft.asPixels}, ${(atop - Length.dimension("15pt")).asPixels})"
-        case "west"  => ""
-        case "south" => s"rotate(270 ${aleft.asPixels}, ${atop.asPixels})"
-        case _  => ""
-      }
-    sb.append(s"""<text x="${aleft.asInchesString}" y="${atop.asInchesString}"
-       style="font-size:66pt;stroke:none;fill:$acolor;
-       font-weight:lighter;font-family:Arial Narrow;font-stretch:ultra-condensed;
-       text-anchor:middle;glyph-orientation-vertical:90;" transform="$trans" >
-      {</text>""")
-    sb.toString()
-  }
-}
-
 case class BlockBox(boxStyle : BoxStyles.Value, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length,
                     lineWidth : Length, fillColor : String, outlineColor : String) extends PageBlock {
   def bottom : Length = Length.dimension("0fu")

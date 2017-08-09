@@ -80,7 +80,8 @@ case class Length(uom : UOM, value : Double) {
      value * uom.unitRatio
   }
   def asPixels : Long = {
-    val s : Double = asDeviceUnits * 0.9
+    val s : Double = asDeviceUnits * ( Length.deviceDPI / 100.0 ) //0.9
+//    println(s"asPixels for ${asInchesString} dpi is ${Length.deviceDPI} mult is ${Length.deviceDPI / 100.0} and pix is $s")
     s.toLong
   }
   def asDeviceUnits : Long = {
@@ -164,6 +165,14 @@ case class Length(uom : UOM, value : Double) {
 // primarily serves to convert strings to Double
 object Length {
   val NEW_LINE_SIZE = Length.dimension("0.15in")
+  private var devDPI = 99
+
+  def setDeviceDPI(value : Int) : Int = {
+      devDPI = value
+      devDPI
+  }
+
+  def deviceDPI : Int = devDPI
 
   def test = {
     var d = dimension("25.4mm")
@@ -194,10 +203,10 @@ object Length {
     println(s"sub .5in is $d and deviceUnits is "+d.asDeviceUnits)
     println("  and as other uoms is "+d.translateUOMs)
     d = dimension("1in")
-    println(s"sub 1in is $d and deviceUnits is "+d.asDeviceUnits)
+    println(s"sub 1in is $d and deviceUnits is ${d.asDeviceUnits} 90px:${d.asPixels} 96px:${d.asPixels}")
     println("  and as other uoms is "+d.translateUOMs)
     d = dimension("2in")
-    println(s"sub 2in is $d and deviceUnits is "+d.asDeviceUnits)
+    println(s"sub 2in is $d and deviceUnits is ${d.asDeviceUnits} 90px:${d.asPixels} 96px:${d.asPixels}")
     println("  and as other uoms is "+d.translateUOMs)
   }
 
