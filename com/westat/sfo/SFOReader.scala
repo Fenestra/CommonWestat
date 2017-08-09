@@ -29,7 +29,7 @@ case class SFOReader(text : String) {
     //   if widget getWidget  widget
     //   if pageSeq, showPageSequences
     getPageSequences
-    Future(displayPageContentSVG)
+    Future(displayPageContentSVG())
   }
 
   def readFromFile : String = {
@@ -37,7 +37,8 @@ case class SFOReader(text : String) {
     getLayoutMasterSet
     getPageSequences
     writeSVGFromPageContent("test.svg")
-    displayPageContentSVG
+    println(s"SFOReader.readFromFile got ${pageContents.length} pages")
+    displayPageContentSVG()
   }
 
   def writeSVG(id : String) : Future[String] = {
@@ -49,13 +50,9 @@ case class SFOReader(text : String) {
     Future(filename)
   }
 
-  def readChildren(node : scala.xml.Node, indent : String = "") : SFOReader = {
-    val ars = node.child
-    ars.foreach(a => {
-      val name = a.toString().substring(1, 50)
-      readChildren(a, indent+" ")
-    })
-    this
+  def readChildren(counter : ElementCounter) : String = {
+    counter.countElements(xml)
+    counter.showResults
   }
 
   def getLayoutMasterSet : SFOReader = {
@@ -181,13 +178,13 @@ case class SFOReader(text : String) {
     this
   }
 
-  def displayPageContentSVG : String = {
-    pageContents.head.toSVG
+  def displayPageContentSVG(page : PageContent = pageContents.head) : String = {
+    page.toSVG
   }
 
   def writeSVGFromPageContent(filename : String) = {
     val pw = new PrintWriter(new File(filename), "UTF-8")
-    pw.write(displayPageContentSVG)
+    pw.write(displayPageContentSVG(pageContents.head))
     pw.close
   }
 
@@ -419,8 +416,8 @@ case class SFOReader(text : String) {
 
 object SFOReader {
   def test = {
-    val filename = "instructions.sfo"
-//    val filename = "BracketSFO.xml"
+//    val filename = "instructions.sfo"
+    val filename = "BracketSFO.xml"
 //    val filename = "Converted-documentLayout.txt"
     SFOReader(filename).readFromFile // .readAll
    }
