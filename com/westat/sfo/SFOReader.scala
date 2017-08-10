@@ -16,7 +16,7 @@ case class SFOReader(text : String) {
   private var layoutMasterForm : String = ""
   var pageMasters : List[PageMaster] = null
   var items : List[QnrItem] = null
-  var pageContents : List[PageContent] = null
+  var pageContents = new ListBuffer[PageContent] //= null
   private var lastCol : Int = 0
   private var lastRow : Int = 0
   private var currentPM : PageMaster = null
@@ -34,9 +34,11 @@ case class SFOReader(text : String) {
 
   def readFromFile : String = {
     xml = XML.loadFile(text).head
-    getLayoutMasterSet
-    getPageSequences
-    writeSVGFromPageContent("test.svg")
+    getLayoutMasterSet  //get layouts and area info
+    getPageSequences    //get content and tie it into the correct layout area
+    for(n <- 0 to pageContents.length-1) {
+      writeSVGFromPageContent(pageContents(n), s"test-$n.svg")
+    }
     println(s"SFOReader.readFromFile got ${pageContents.length} pages")
     displayPageContentSVG()
   }
@@ -46,14 +48,25 @@ case class SFOReader(text : String) {
     getLayoutMasterSet
     getPageSequences
     val filename = s"$id.svg"
-    writeSVGFromPageContent("public/images/"+filename)
+    writeSVGFromPageContent(pageContents.head, "public/images/"+filename)
     Future(filename)
+  }
+
+  def displayPageContentSVG(page : PageContent = pageContents.head) : String = {
+    page.toSVG
+  }
+
+  def writeSVGFromPageContent(page : PageContent, filename : String) = {
+    val pw = new PrintWriter(new File(filename), "UTF-8")
+    pw.write(displayPageContentSVG(page))
+    pw.close
   }
 
   def readChildren(counter : ElementCounter) : String = {
     counter.countElements(xml)
     counter.showResults
   }
+
 
   def getLayoutMasterSet : SFOReader = {
     val lms = (xml \ "layout-master-set")
@@ -69,6 +82,7 @@ case class SFOReader(text : String) {
       val pwidth  = (a \ "media" \ "@width").text
       val pheight = (a \ "media" \ "@height").text
       val pm = PageMaster(id, pcolor, Length.dimension(pwidth), Length.dimension(pheight))
+//println("made pagemaster")
       pmList += pm
       currentPM = pm
       getRegions(a, pm)
@@ -176,16 +190,6 @@ case class SFOReader(text : String) {
     })
     items = psflows.toList
     this
-  }
-
-  def displayPageContentSVG(page : PageContent = pageContents.head) : String = {
-    page.toSVG
-  }
-
-  def writeSVGFromPageContent(filename : String) = {
-    val pw = new PrintWriter(new File(filename), "UTF-8")
-    pw.write(displayPageContentSVG(pageContents.head))
-    pw.close
   }
 
   def makeQGraphic(name : String, graphicClass : String, width : String, height : String,
@@ -361,10 +365,12 @@ case class SFOReader(text : String) {
   }
 
   def makeContent(f : NodeSeq) = {
-    val pagelist = new ListBuffer[PageContent]
+    println("make content page-seq")
+//    val pagelist = new ListBuffer[PageContent]
+    var page : PageContent = null
     f.foreach(n => {
-      val page = makePageContent(n)
-      pagelist += page
+      page = makePageContent(n)
+  //    pagelist += page
       //      <sfo:page-sequence title="Form ASCO-L3_P01_08 - Page 0"><sfo:sequence-specification><sfo:sequence-specifier-single page-master-id="1E24480C-8F11-429C-8E4C-A6CF62A04D6E"/></sfo:sequence-specification>
       // grab the pagemaster id  look up pageseq title in areas will give you the location info  but grab the color from pagemaster
       for (elem <- n.child) {
@@ -376,7 +382,8 @@ case class SFOReader(text : String) {
         })}
 
     })
-    pageContents = pagelist.toList
+//    println(s"makeContent has page of ${pagelist.head} and pagelist has ${pagelist.length} pages")
+    pageContents += page //list.head //.toList
   }
 
   def getPageSeqFlows(f : NodeSeq, flowlist : ListBuffer[QnrItem]) : SFOReader = {
@@ -416,8 +423,8 @@ case class SFOReader(text : String) {
 
 object SFOReader {
   def test = {
-//    val filename = "instructions.sfo"
-    val filename = "BracketSFO.xml"
+    val filename = "instructions.sfo"
+//    val filename = "BracketSFO.xml"
 //    val filename = "Converted-documentLayout.txt"
     SFOReader(filename).readFromFile // .readAll
    }
