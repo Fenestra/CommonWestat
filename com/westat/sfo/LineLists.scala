@@ -101,7 +101,7 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
     textList.foreach(t => {
       thisWidth = currentFont(t.font).stringWidth(t.text)
       lineObj = addLineIfNeeded(lineObj)
-//    println(s" this text ${t.text} len=$thisWidth remaining:${lineObj.remainingWidth}")
+//    println(s" getLineList this text ${t.text} len=$thisWidth remaining:${lineObj.remainingWidth}")
       if (thisWidth <= lineObj.remainingWidth)
         lineObj = lineObj.addText(t.text, thisWidth, t.fontstring)
       else
@@ -118,7 +118,7 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
   }
 
   private def addLineIfNeeded(line : OutputLine) : OutputLine = {
-    if (line.remainingWidth < Length.dimension(".05in"))
+//println(s"addLineIfNeeded remaining:${line.remainingWidth} 2xfont:${(font.rawSize * 2)}")
       addLine
     else
       line
@@ -128,12 +128,16 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
     val thisFont = currentFont(t.font)
     val lines = StringUtilities.fitStringToLengths(t.text, lineObj.remainingWidth, maxWidth, thisFont)
     var thisWidth = thisFont.stringWidth(lines.head)
-    var result = lineObj.addText(lines.head, thisWidth, fs)
+    var result = if (thisWidth > lineObj.remainingWidth)
+        addLine
+      else
+        lineObj
+    result = result.addText(lines.head, thisWidth, fs)
     val iter = lines.tail.iterator
     while (iter.hasNext) {
       val ttext = iter.next()
       if (iter.hasNext)
-      // no need to calculate space used, just send entire width of line
+        // no need to calculate space used, just send entire width of line
         result = addLine.addText(ttext, result.length, fs)
       else {
         // this is the last line and probably doesnt occupy the entire width
