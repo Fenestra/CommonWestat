@@ -43,23 +43,30 @@ case class SFOReader(text : String) {
     displayPageContentSVG()
   }
 
-  def writeSVG(id : String) : Future[String] = {
+  def writeSVGs(id : String) : Future[List[String]] = {
     xml = XML.loadString(text).head
+    pageContents.clear()
     getLayoutMasterSet
     getPageSequences
-    val filename = s"$id.svg"
-    writeSVGFromPageContent(pageContents.head, "public/images/"+filename)
-    Future(filename)
+    val list = new ListBuffer[String]
+    for(n <- 0 to pageContents.length-1) {
+      val fileprefix = s"$id-n"
+      list += writeSVGFromPageContent(pageContents(n), fileprefix)
+    }
+    Future(list.toList)
   }
 
   def displayPageContentSVG(page : PageContent = pageContents.head) : String = {
-    page.toSVG
+    page.toSVG.replace("\n", "")
   }
 
-  def writeSVGFromPageContent(page : PageContent, filename : String) = {
-    val pw = new PrintWriter(new File(filename), "UTF-8")
+  def writeSVGFromPageContent(page : PageContent, fileprefix : String) : String = {
+    val file = File.createTempFile(fileprefix, ".svg", new File("public/images"))
+    file.deleteOnExit()
+    val pw = new PrintWriter(file, "UTF-8")
     pw.write(displayPageContentSVG(page))
     pw.close
+    file.getCanonicalFile.getName
   }
 
   def readChildren(counter : ElementCounter) : String = {
@@ -284,8 +291,19 @@ case class SFOReader(text : String) {
     val spaceBefore = Length.dimension((n \ "@space-before").text)
     val spaceAfter = Length.dimension((n \ "@space-after").text)
     val data = (n \ "@data").text
-    val pg = BlockGraphic.createGraphic(graphicClass, width, height, spaceBefore, spaceAfter, data)
-    Some(pg)
+    val graphicKind = GraphicKinds.valueForKindString(graphicClass)
+    graphicKind match {
+      case GraphicKinds.gkRotatedText => {
+//        println(n.toString())
+//rotated also uses spacebefore/after
+        Some(RotatedText.createRotatedText(data))
+      }
+      case _ => {
+        val pg = BlockGraphic.createGraphic(graphicClass, width, height, spaceBefore, spaceAfter, data)
+        Some(pg)
+      }
+    }
+
   }
 
   def makePageBracket(n : Node) : Option[PageBlock] = {
@@ -365,7 +383,6 @@ case class SFOReader(text : String) {
   }
 
   def makeContent(f : NodeSeq) = {
-    println("make content page-seq")
 //    val pagelist = new ListBuffer[PageContent]
     var page : PageContent = null
     f.foreach(n => {

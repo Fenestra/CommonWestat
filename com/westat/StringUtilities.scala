@@ -222,7 +222,7 @@ object StringUtilities {
     val outStream = new ByteArrayOutputStream()
     val inflater = new Inflater()
     inflater.setInput(arr)
-    var tmp = new Array[Byte](4*1024)
+    var tmp = new Array[Byte](4*4096)
     try{
       while(!inflater.finished()) {
         val size = inflater.inflate(tmp)

@@ -1,7 +1,7 @@
 package com.westat.sfo
 
 import com.westat.gids.GidsFont
-import com.westat.{Length, Location, StringUtilities}
+import com.westat.{Length, Location, StringUtilities, ZipUtilities}
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -199,6 +199,12 @@ object BlockGraphic {
       case _ => BlockImage(gKind, width, height, spaceBefore, spaceAfter, rawdata)
     }
   }
+  def createRotated(data : String, angle : String, font : GidsFont, width : Length, height : Length) : PageBlock = {
+    BlockRotatedText(data, angle, font, width, height)
+  }
+//  def createReverseCircle(circleKind : String, content : String) : PageBlock = {
+//    BlockReverseCircle(ReverseCircleKinds.valueForKindString(circleKind), content)
+//  }
 }
 
 case class BlockBox(boxStyle : BoxStyles.Value, width : Length, height : Length, spaceBefore : Length, spaceAfter : Length,

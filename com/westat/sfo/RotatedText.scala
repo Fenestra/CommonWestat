@@ -52,6 +52,50 @@ case class BlockRotatedText(data : String, angle : String, font : GidsFont, widt
   }
 
 }
+
+object RotatedText {
+  def createRotatedText(compressedSource: String): BlockRotatedText = {
+    val info = RotatedTextInfo(compressedSource)
+    BlockRotatedText(info.text, info.angle, info.font, info.width, info.height)
+  }
+}
+
+case class RotatedTextInfo(compressedSource : String) {
+  var angleAsInt : Int = 0
+  var text : String = _
+  var fontName : String = _
+  var color : Int = 0
+  var fontSize : Int = 0
+  var fontStyle : Int = 0
+  var widthAsInt : Int = 0
+  var heightAsInt : Int = 0
+  var fontColorName : String = _
+  def angle : String = "%.1f".format(angleAsInt / 10)
+  def width : Length = Length.dimension(s"${widthAsInt}pt")
+  def height : Length = Length.dimension(s"${heightAsInt}pt")
+  expandAndReadData
+
+  private def expandAndReadData : RotatedTextInfo = {
+    val exp = ExpansionObj(compressedSource)
+    angleAsInt = exp.readInt
+    text = exp.readWideString
+    fontName = exp.readString
+    color = exp.readInt // -26 3 times
+    fontSize = exp.readInt
+    fontStyle = exp.readInt //45 is actually 5 long because its a set!
+    exp.readByte
+    heightAsInt = exp.readShortInt
+    widthAsInt = exp.readShortInt
+    fontColorName = exp.safeReadString //54
+//    println(s"test is angle:$angle text:$text font:$fontname color:$color size:$size fs:$fontstyle w:$width h:$height fc:$fontcolorname")
+    this
+  }
+
+  def font : GidsFont = {
+    GidsFont(fontName, fontColorName, "", Length.dimension(s"${fontSize}pt"))
+  }
+
+}
 /*---------------------------------------------------------------------
 
   if Source is TRotatedText then begin

@@ -119,6 +119,7 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
 
   private def addLineIfNeeded(line : OutputLine) : OutputLine = {
 //println(s"addLineIfNeeded remaining:${line.remainingWidth} 2xfont:${(font.rawSize * 2)}")
+    if (line.remainingWidth < (font.rawSize * 2))
       addLine
     else
       line

@@ -26,6 +26,23 @@ case class ElementCounter() {
 
 }
 
+object ElementCounter {
+  val ignoreList = List("layout-master-set",
+    "page-master",
+    "media",
+    "region",
+    "area",
+    "inline",
+    "page-sequence",
+    "sequence-specification",
+    "sequence-specifier-single",
+    "#PCDATA",
+    "flow" )
+  def shouldCount(value : String) : Boolean = {
+//    println(s"has $value "+ ignoreList.contains(value).equals(false))
+    ignoreList.contains(value).equals(false)
+  }
+}
 
 case class SFOElementCounter(text : String) {
   private var xml : Node = null
