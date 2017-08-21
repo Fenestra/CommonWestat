@@ -354,7 +354,6 @@ case class PageContent(title : String, pageMaster: PageMaster) {
     var color = pageMaster.color
     if (color == "")
       color = "white"
-    color = "lightgreen"
     // dont really need a viewbox
     //    val res = new StringBuilder(s"""<svg width="$width" height="$height" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 708.000 139.200" >""")
     val res = new StringBuilder(s"""<svg width="$width" height="$height" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="$title" >\n""")

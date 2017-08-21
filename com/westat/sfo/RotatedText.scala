@@ -35,7 +35,7 @@ case class BlockRotatedText(data : String, angle : String, font : GidsFont, widt
   def toSVG(location: Location, paragraphs: Boolean): String = {
    // <svg id="45rotated" x="1.57in" y="5.00in" width="1.0in" height="1in" viewBox="16 10 100 100">
     val sb = new StringBuilder(
-      s"""<svg x="${location.left.asInchesString}" y="${location.top.asInchesString}" width="${width.asInchesString}" height="${height.asInchesString}">\n""")
+      s"""<svg x="${location.left.asInchesString}" y="${location.top.asInchesString}" width="${location.width.asInchesString}" height="${location.height.asInchesString}">\n""")
       // <g transform="scale(0.8) rotate(45 50,50)"> to scale 80%
       //requested 1/2in ourscale = 1in so scale= 0.5 / ourscale   or  4 req / 1
       //val scale = 1 // requestedwidth / ourwidth
@@ -45,8 +45,12 @@ case class BlockRotatedText(data : String, angle : String, font : GidsFont, widt
   //      <rect x="0" y="0" width="150" height="150" fill="pink"/>
   //      <text x="0" y="50" style="font-size:10pt;stroke:none;fill:black;font-weight:normal;font-family:Arial;text-anchor:start;">
   //        Some 45 rotated text
+    val textPos = if (font.rawSize > Length.dimension("30pt"))
+      """x="40" y="40" """
+    else
+      """x="0" y="50" """
     sb.append(
-      s"""  <text x="0" y="50" style="text-anchor:start;" ${font.asSVGString}>$data</text>\n""")
+      s"""  <text $textPos style="text-anchor:start;" ${font.asSVGString}>$data</text>\n""")
     sb.append(" </g>\n</svg>")
     sb.toString()
   }
@@ -70,7 +74,7 @@ case class RotatedTextInfo(compressedSource : String) {
   var widthAsInt : Int = 0
   var heightAsInt : Int = 0
   var fontColorName : String = _
-  def angle : String = "%.1f".format(angleAsInt / 10)
+  def angle : String = "%.1f".format(angleAsInt / 10.0)
   def width : Length = Length.dimension(s"${widthAsInt}pt")
   def height : Length = Length.dimension(s"${heightAsInt}pt")
   expandAndReadData

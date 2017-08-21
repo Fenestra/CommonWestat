@@ -103,7 +103,7 @@ case class ExpansionObj(compressedSource : String) {
   }
 
   private def decodeUnpackSource : Array[Byte] = {
-    val inStream = new ByteArrayInputStream(compressedSource.getBytes)
+    val inStream = new ByteArrayInputStream(compressedSource.filterNot(c => c == ' ').getBytes)
     val outStream = new ByteArrayOutputStream
     val inflater = new InflaterOutputStream(outStream)
     StringUtilities.base64StreamDecode(inStream, inflater)
