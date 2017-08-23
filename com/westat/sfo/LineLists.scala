@@ -48,7 +48,9 @@ case class OutputLine(length : Length, textAlign : TextAlignments.Value) {
     sb.toString
   }
 
-  def toSVG(sb : StringBuilder, startRect : Location, fs : String) = {
+  def toSVG(sb : StringBuilder, startRect : Location, fs : String) : OutputLine = {
+    if (list.isEmpty)
+      return this
     var rect = startRect.copyOf
     val lineX = xForAlignment(rect)
     val startfs = list.head.fs
@@ -61,6 +63,7 @@ case class OutputLine(length : Length, textAlign : TextAlignments.Value) {
         sb.append(p.text)
     })
     sb.append("</tspan>\n")
+    this
   }
 
   private def xForAlignment(aRect : Location) : Length = {

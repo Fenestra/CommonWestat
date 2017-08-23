@@ -416,7 +416,11 @@ case class SFOReader(text : String) {
         val height = (f \ "block-graphic" \ "@height").text
         val spaceBefore = (f \ "block-graphic" \ "@space-before").text
         val spaceAfter = (f \ "block-graphic" \ "@space-after").text
-        val data = (f \ "block-graphic" \ "@data").text.substring(1, 50)
+        val rawdata = (f \ "block-graphic" \ "@data").text
+        val data = if (rawdata.length > 50)
+           rawdata.substring(1, 50)
+          else
+           rawdata
         makeQGraphic(name, graphicClass, width, height, spaceBefore, spaceAfter, data) match {
           case Some(qi) => flowlist += qi
           case None =>
