@@ -3,7 +3,7 @@ package com.westat.sfo
 
 import java.io.{File, PrintWriter}
 import com.westat.gids.GidsFont
-import com.westat.{Length, StringUtilities}
+import com.westat.{MemoryCache, Length, StringUtilities}
 import scala.concurrent.Future
 import scala.xml.{NodeSeq, XML, Node}
 import scala.collection.mutable.ListBuffer
@@ -43,17 +43,20 @@ case class SFOReader(text : String) {
     displayPageContentSVG()
   }
 
-  def writeSVGs(id : String) : Future[List[String]] = {
+  def writeSVGs(id : String) : List[String] = {
     xml = XML.loadString(text).head
     pageContents.clear()
     getLayoutMasterSet
     getPageSequences
     val list = new ListBuffer[String]
+    val cache = MemoryCache.svgCache
     for(n <- 0 to pageContents.length-1) {
-      val fileprefix = s"$id-n"
-      list += writeSVGFromPageContent(pageContents(n), fileprefix)
+      val fileprefix = s"$id-$n"
+      val contents = displayPageContentSVG(pageContents(n))
+      list += fileprefix
+      cache.write(fileprefix, contents)
     }
-    Future(list.toList)
+    list.toList
   }
 
   def displayPageContentSVG(page : PageContent = pageContents.head) : String = {
