@@ -3,7 +3,7 @@ package com.westat.sfo
 
 import java.io.{File, PrintWriter}
 import com.westat.gids.GidsFont
-import com.westat.{MemoryCache, Length, StringUtilities}
+import com.westat.{MemoryCache, Length}
 import scala.concurrent.Future
 import scala.xml.{NodeSeq, XML, Node}
 import scala.collection.mutable.ListBuffer
