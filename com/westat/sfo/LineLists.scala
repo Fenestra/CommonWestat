@@ -102,7 +102,10 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
     var thisWidth : Length = null
     var lineObj = addLine
     textList.foreach(t => {
-      thisWidth = currentFont(t.font).stringWidth(t.text)
+      thisWidth = if (t.isInstanceOf[InlineText])
+        currentFont(t.font).stringWidth(t.text)
+      else
+        t.usedLength
       lineObj = addLineIfNeeded(lineObj)
 //    println(s" getLineList this text ${t.text} len=$thisWidth remaining:${lineObj.remainingWidth}")
       if (thisWidth <= lineObj.remainingWidth)

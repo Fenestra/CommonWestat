@@ -87,7 +87,7 @@ object StringUtilities {
 */
   def listOfMaxLengthStrings(src : String, maxLen : Int) : List[String] = {
     val res = new ListBuffer[String]
-    val it = src. sliding(maxLen, maxLen)
+    val it = src.sliding(maxLen, maxLen)
     var rem : String = ""
     while (it.hasNext) {
       var n = rem + it.next()
@@ -107,7 +107,7 @@ object StringUtilities {
 
   def listOfMaxLengthStrings(src : String, maxLen : Int, indentNum : Int) : List[String] = {
     val res = new ListBuffer[String]
-    val it = src. sliding(maxLen, maxLen)
+    val it = src.sliding(maxLen, maxLen)
     var rem : String = "".padTo(indentNum, ' ')
     while (it.hasNext) {
       var n = rem + it.next()

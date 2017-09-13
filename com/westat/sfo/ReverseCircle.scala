@@ -1,5 +1,6 @@
 package com.westat.sfo
 
+import com.westat.gids.GidsFont
 import com.westat.{Location, Length}
 
 /**
@@ -35,7 +36,7 @@ case class RCStyle(circleKind : ReverseCircleKinds.Value) {
   def fontFamily : String = {
     circleKind match {
       case ReverseCircleKinds.rckACSArrow  => "DejaVu Sans"
-      case _            => "Helvitica" // "Univers LT 55"
+      case _            => "Helvetica" // "Univers LT 55"
     }
   }
 
@@ -96,6 +97,39 @@ case class BlockReverseCircle(circleKind : ReverseCircleKinds.Value, content : S
     sb.append(s"""<circle cx="${midLeft.asInchesString}" cy="${midTop.asInchesString}" r="${style.radius}" fill="${style.color}" />\n""")
     sb.append(
       s"""<text x="${midLeft.asInchesString}" y="${(midTop + (Length.dimension(style.radius) / 2)).asInchesString}" ${style.fontAttributes}>$content</text>\n""")
+    sb.toString()
+  }
+
+}
+
+case class InlineReverseCircle(circleKind : ReverseCircleKinds.Value, content : String, font : GidsFont) extends TextObject {
+  private val style = RCStyle(circleKind)
+
+  def bottom: Length = Length.dimension("0fu")
+
+  def displayString: String = {
+    toString + "\n"
+  }
+
+  def isEmpty: Boolean = false
+
+  def fontstring : String = {
+    if (font != null)
+      font.asSVGString
+    else
+      style.fontAttributes
+  }
+
+  def toSVG(location: Location, paragraphs: Boolean): String = {
+    val sb = new StringBuilder()
+    val width = Length.dimension(".4in")
+    val height = Length.dimension(".4in")
+    val midLeft = location.left + (width / 2)
+    val midTop = location.top + (height / 2)
+    //println(s"here we have the style ${style.attributes}")
+    sb.append(s"""<circle cx="${midLeft.asInchesString}" cy="${midTop.asInchesString}" r="${style.radius}" fill="${style.color}" />\n""")
+    sb.append(
+      s"""<text x="${midLeft.asInchesString}" y="${(midTop + (Length.dimension(style.radius) / 2)).asInchesString}" ${fontstring}>$content</text>\n""")
     sb.toString()
   }
 

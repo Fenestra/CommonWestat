@@ -121,15 +121,24 @@ object GraphicKinds extends Enumeration {
   }
 }
 
-case class InlineText(text : String, font : GidsFont) {
-  private val maxLength = Length.dimension("7in")
+trait TextObject {
   var lineCount = 1
   var usedLength = Length.dimension("0fu")
   var startLeft = Length.dimension("0fu")
   var nextLeft = Length.dimension("0fu")
   var availableWidth = Length.dimension("0fu")
   var isOversize : Boolean = false
-  var isEmpty : Boolean = text.length == 0
+  def isEmpty : Boolean
+  def font : GidsFont
+  def fontstring : String
+}
+
+case class InlineText(text : String, afont : GidsFont) extends TextObject {
+  private val maxLength = Length.dimension("7in")
+
+  def isEmpty : Boolean = text.isEmpty
+
+  def font : GidsFont = afont
 
   def fontstring : String = {
     if (font.ne(null))
@@ -310,8 +319,8 @@ case class PageFlow(contentID : String, color : String, location : Location) {
       var colorString = color
       colorString match {
         case "" => colorString = "white"
-      //  case "form-background" => colorString = "silver"
-        case _ => parentColor
+        case "form-background" => colorString = parentColor //"silver"
+        case _ => colorString = parentColor
       }
       res.append(s"""<rect x="$x" y="$y" width="$w" height="$h" fill="$colorString" fill-opacity="0.6" id="$contentID" />\n""")
     }

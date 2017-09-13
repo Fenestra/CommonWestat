@@ -3,7 +3,7 @@ package com.westat.sfo
 
 import java.io.{File, PrintWriter}
 import com.westat.gids.GidsFont
-import com.westat.{MemoryCache, Length}
+import com.westat.{ConvertSvgToPdf, MemoryCache, Length}
 import scala.concurrent.Future
 import scala.xml.{NodeSeq, XML, Node}
 import scala.collection.mutable.ListBuffer
@@ -43,6 +43,7 @@ case class SFOReader(text : String) {
     displayPageContentSVG()
   }
 
+  // writes both SVG and PDF to cache
   def writeSVGs(id : String) : List[String] = {
     xml = XML.loadString(text).head
     pageContents.clear()
@@ -50,11 +51,15 @@ case class SFOReader(text : String) {
     getPageSequences
     val list = new ListBuffer[String]
     val cache = MemoryCache.svgCache
+    val pdfcache = MemoryCache.pdfCache
     for(n <- 0 to pageContents.length-1) {
       val fileprefix = s"$id-$n"
       val contents = displayPageContentSVG(pageContents(n))
       list += fileprefix
       cache.write(fileprefix, contents)
+      val pdfResult = ConvertSvgToPdf.convertToBA(contents)
+      if (pdfResult.pdf != null)
+         pdfcache.write(fileprefix, pdfResult.pdf)
     }
     list.toList
   }
@@ -267,8 +272,10 @@ case class SFOReader(text : String) {
   }
 
   def makeInlineText(n : Node, parentFont : GidsFont) : Option[InlineText] = {
-    if (n.label != "inline")
+    if (n.label != "inline") {
+//      println(s"makeInlineText is ignoring ${n.label}")
       return None
+    }
     if (n.text == "?")
       return None
     val tlength = n.text.length
@@ -336,6 +343,24 @@ case class SFOReader(text : String) {
     Some(pb)
   }
 
+  // <sfo:inline-reverse-circle content="9" style="" font-color="#000000" font-family="Univers LT 55" font-size="1019810fu"/>
+  def makeInlineReverseCircle(n : Node, font : GidsFont) : Option[TextObject] = {
+    val font = fontForNode(n)
+    val circleKind = (n \ "@style").text
+    val content = (n \ "@content").text
+    Some(InlineReverseCircle(ReverseCircleKinds.valueForKindString(circleKind), content, font))
+  }
+
+  def makeBlockInline(n : Node, font : GidsFont) : Option[InlineText] = {
+    n.label match {
+      case "inline" => return makeInlineText(n, font)
+  //    case "inline-reverse-circle" => return makeInlineReverseCircle(n, font)
+  //    case "inline-goomer"     => //return makePageBox(n)
+      case _ => println(s"makeBlockInline ignoring ${n.label} node is ${n.text}")
+    }
+    return None
+  }
+
   //populate a top level block, that can have either blocks or inline as children or be empty
   //   maybe not - it looks like blocks only have inline as children
   def makePageBlock(n : Node) : Option[PageBlock] = {
@@ -352,8 +377,9 @@ case class SFOReader(text : String) {
     val font = fontForNode(n)
     val pb = BlockText(font, TextAlignments.valueForTextAlignString((n \ "@text-align").text))
     n.child.foreach(bc =>
-      makeInlineText(bc, font) match {
-        case Some(text) => pb.addText(text)
+   //   makeInlineText(bc, font) match {
+      makeBlockInline(bc, font) match {
+      case Some(text) => pb.addText(text)
         case None =>
       })
     Some(pb)
