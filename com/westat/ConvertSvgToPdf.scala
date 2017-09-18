@@ -16,8 +16,7 @@ object ConvertSvgToPdf {
 
   def convertToFile(svg : String) = {
     val transcoder = new PDFTranscoder()
-    // need to get rid of non-ascii chars with ISO encoding
-    val inStream = new ByteArrayInputStream(svg.getBytes("ISO-8859-1"))
+    val inStream = new ByteArrayInputStream(svg.getBytes("UTF-8"))
     val input = new TranscoderInput(inStream)
 
     val outStream = new java.io.FileOutputStream(new File("output.pdf"));
@@ -30,8 +29,7 @@ object ConvertSvgToPdf {
 
   def convertToBA(svg : String) : SVGRenderResult = {
     val transcoder = new PDFTranscoder()
-    // need to get rid of non-ascii chars with ISO encoding
-    val inStream = new ByteArrayInputStream(svg.getBytes("ISO-8859-1"))
+    val inStream = new ByteArrayInputStream(svg.getBytes("UTF-8"))
     val input = new TranscoderInput(inStream)
 
     val outStream = new ByteArrayOutputStream()
