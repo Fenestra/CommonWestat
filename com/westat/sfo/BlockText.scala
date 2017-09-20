@@ -85,6 +85,7 @@ case class BlockText(font : GidsFont, textAlign : TextAlignments.Value) extends 
   }
 
   private def lineSize : Length = font.rawSize
+  private def paragraphSize : Length = font.rawSize * 0.1
 
   private def currentFont(textfont : GidsFont) : GidsFont = {
     if (textfont == null)
@@ -109,9 +110,9 @@ case class BlockText(font : GidsFont, textAlign : TextAlignments.Value) extends 
       availRect = wrapToNewLine(availRect)
     })
 
-//    if (paragraphs)  // lineSpace works best below, but not for regular letters, only instructions
-//      bottom = availRect.top + font.lineSpace //lineSize
-//    else
+    if (paragraphs)  // lineSpace works best below, but not for regular letters, only instructions
+      bottom = availRect.top + paragraphSize
+    else
       bottom = availRect.top
     // complete the string and return the result
     sb.append("</text>\n")

@@ -54,11 +54,11 @@ case class OutputLine(length : Length, textAlign : TextAlignments.Value) {
     var rect = startRect.copyOf
     val lineX = xForAlignment(rect)
     val startfs = list.head.fs
-    val line = s"""<tspan x="${lineX.asInchesString}" y="${startRect.top.asInchesString}">\n"""
+    val line = s"""<tspan x="${lineX.asInchesString}" y="${startRect.top.asInchesString}">"""
     sb.append(line)
     list.foreach(p => {
-      if (p.fs != fs)
-        sb.append(s"""<tspan ${p.fs}>${p.text}</tspan>\n""")
+      if ( (p.fs.nonEmpty) )
+        sb.append(s"""\n<tspan ${p.fs}>${p.text}</tspan>\n""")
       else
         sb.append(p.text)
     })
@@ -113,8 +113,8 @@ case class LineListFactory(textList : List[InlineText], maxWidth : Length, font 
       else
         lineObj = addMultipleLines(lineObj, t, t.fontstring)
     })
-
-    linelist
+    // remove empty lines - may have addLineIfNeeded but then not used it...
+    linelist.filter(line => line.contents.trim.nonEmpty)
   }
 
   private def addLine : OutputLine = {
